@@ -1,5 +1,39 @@
 Bonjour !
 
+Voici mon mini projet de Dev Ops & déploiement CO/CD
+L'application que j'ai choisi est une application monolithique CRUD React simple. 
+
+L'architecture du projet est comme suit
+
+=> crude-app
+    => k8s
+      => react-crud-deploy.yaml
+      => react-crud-pod.yaml
+      => react-crud-svc.yaml
+    => public 
+      => Fichiers de l'application
+    => src
+      => Fichiers de l'application également
+    => Dockerfile
+    => Jenkinsfile
+    => LICENSE
+    => nginx.conf
+    => package.json
+    => package-lock.json
+=> jenkins
+  => Dockerfile
+=> docker-compose.yaml
+=> readme.txt
+
+Dans ce projet j'ai fait appel à plusieurs technologies :
+
+-> Helm pour la mise en place de Prometheus et Graphana
+-> Kubernetes pour l'orchestration
+-> Nginx pour le serveur Web
+-> React pour le front
+-> Jenkins pour le CI/CD
+-> Prometheus et Graphana pour le monitoring
+
 Voici un petit tutoriel pour faire fonctionner cette application monolithique.
 
 Tout d'abord il vous faut cloner ce repository. 
