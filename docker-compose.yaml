@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+  crud-app:
+    build:
+      context: ./crud-app
+      dockerfile: Dockerfile
+    image: react-crud-app:latest
+    container_name: crud-app
+    ports:
+      - "8080:80"
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+
+networks:
+  devops-network:
+    driver: bridge
