@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-crud
+  labels:
+    app: react-crud
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: react-crud
+  template:
+    metadata:
+      labels:
+        app: react-crud
+    spec:
+      containers:
+      - name: react-crud
+        image: julespelissou/react-crud-app:latest
+        ports:
+        - containerPort: 8080

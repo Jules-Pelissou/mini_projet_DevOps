@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-crud-service
+  labels:
+    app: react-crud
+spec:
+  type: LoadBalancer
+  selector:
+    app: react-crud
+  ports:
+  - port: 8080
+    targetPort: 8080
