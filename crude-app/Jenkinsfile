@@ -5,53 +5,54 @@ pipeline {
         DOCKERHUB_USERNAME = 'julespelissou'
         IMAGE_NAME = 'react-crud-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
     }
     
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace & Checkout') {
             steps {
-                echo 'Récupération du code source...'
+                echo 'Nettoyage et récupération du code...'
+                cleanWs()
                 checkout scm
+                sh 'ls -la'
+                sh 'ls -la crude-app/'
             }
         }
         
         stage('Build Docker Image') {
             steps {
                 echo 'Construction de l\'image Docker...'
-                script {
-                    docker.build("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}")
-                    docker.build("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest")
+                dir('crude-app') {
+                    sh """
+                        docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker tag ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
+                    """
                 }
             }
         }
         
-        stage('Login to Docker Hub') {
+        stage('Login and Push to Docker Hub') {
             steps {
-                echo 'Connexion à Docker Hub...'
-                script {
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                }
-            }
-        }
-        
-        stage('Push to Docker Hub') {
-            steps {
-                echo 'Push de l\'image vers Docker Hub...'
-                script {
-                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
+                echo 'Connexion et push vers Docker Hub...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credential', 
+                                                  usernameVariable: 'DOCKER_USER', 
+                                                  passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
+                        docker logout
+                    '''
                 }
             }
         }
         
         stage('Cleanup') {
             steps {
-                echo 'Nettoyage des images locales...'
-                script {
-                    sh "docker rmi ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} || true"
-                    sh "docker rmi ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest || true"
-                }
+                echo 'Nettoyage des images Docker...'
+                sh """
+                    docker rmi ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} || true
+                    docker rmi ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest || true
+                """
             }
         }
     }
@@ -61,11 +62,7 @@ pipeline {
             echo 'Pipeline exécuté avec succès !'
         }
         failure {
-            echo 'Échec du pipeline.'
-        }
-        always {
-            echo 'Déconnexion de Docker Hub...'
-            sh 'docker logout'
+            echo 'Echec du pipeline.'
         }
     }
 }
